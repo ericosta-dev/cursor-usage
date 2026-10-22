@@ -1,0 +1,184 @@
+:root {
+  /* Theme colors by default; the cursorUsage.accentColor setting overrides these four (see panel.ts) */
+  --primary: var(--vscode-charts-blue);
+  --primary-strong: var(--vscode-button-background);
+  --primary-hover: var(--vscode-button-hoverBackground);
+  --on-primary: var(--vscode-button-foreground);
+  --bar: var(--primary);
+  --grid: var(--vscode-editorWidget-border, rgba(128, 128, 128, 0.35));
+  --muted: var(--vscode-descriptionForeground);
+  --card: var(--vscode-editorWidget-background, transparent);
+}
+
+body {
+  background: var(--vscode-editor-background);
+  color: var(--vscode-foreground);
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  margin: 0;
+  padding: 20px 24px 32px;
+}
+
+h1 { font-size: 1.5em; font-weight: 600; margin: 0; }
+h2 { font-size: 1.05em; font-weight: 600; margin: 0 0 10px; }
+.muted { color: var(--muted); }
+.num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+
+header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+header p { margin: 4px 0 0; }
+
+.actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+.segmented { display: inline-flex; border: 1px solid var(--grid); border-radius: 4px; overflow: hidden; }
+.segmented button { background: transparent; color: var(--vscode-foreground); border-radius: 0; padding: 5px 12px; }
+.segmented button + button { border-left: 1px solid var(--grid); }
+.segmented button:hover { background: var(--vscode-list-hoverBackground); }
+.segmented button[aria-pressed="true"] { background: var(--vscode-button-secondaryBackground, var(--grid)); color: var(--vscode-button-secondaryForeground, var(--vscode-foreground)); font-weight: 600; box-shadow: inset 0 -2px 0 var(--primary); }
+.heading-note { font-weight: 400; }
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.section-head h2 { margin: 0; }
+.segmented.small button { padding: 3px 10px; font-size: 0.92em; }
+button.link { background: none; color: var(--vscode-textLink-foreground); padding: 8px 0 0; }
+button.link:hover { background: none; text-decoration: underline; }
+button.link:disabled { background: none; color: var(--muted); text-decoration: none; }
+.pager { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.pager .muted { font-size: 0.9em; }
+.delta { margin-top: 4px; }
+.insights { border-left: 3px solid var(--bar); background: var(--card); padding: 8px 14px; margin: -12px 0 28px; border-radius: 0 4px 4px 0; }
+.insights p { margin: 4px 0; }
+.nowrap { white-space: nowrap; }
+/* max-width: 0 lets a table cell shrink, so long chat titles get an ellipsis instead of squeezing other columns */
+.title-cell { width: 45%; max-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+button {
+  background: var(--primary-strong);
+  color: var(--on-primary);
+  border: none;
+  border-radius: 2px;
+  padding: 6px 14px;
+  font: inherit;
+  cursor: pointer;
+}
+button:hover { background: var(--primary-hover); }
+button:disabled { opacity: 0.6; cursor: default; }
+button.secondary { background: transparent; color: var(--vscode-foreground); border: 1px solid var(--grid); padding: 5px 12px; }
+button.secondary:hover { background: var(--vscode-list-hoverBackground); }
+button.secondary[aria-pressed="true"] { border-color: var(--primary); }
+button.icon { background: transparent; color: var(--vscode-foreground); border: 1px solid var(--grid); padding: 1px 8px; font-size: 1em; line-height: 1.4; }
+button.icon:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); background: transparent; }
+button.icon:disabled { opacity: 0.35; }
+
+/* Layout mode: every block framed, with its name and ↑/↓ on top */
+.layout-bar { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin: -8px 0 20px; padding: 10px 14px; border: 1px dashed var(--primary); border-radius: 6px; }
+.layout-bar code { font-family: var(--vscode-editor-font-family); font-size: 0.92em; }
+.layout-actions { display: inline-flex; gap: 16px; }
+.layout-actions button.link { padding: 0; }
+.block.editing { border: 1px dashed var(--grid); border-radius: 6px; padding: 10px 14px 0; margin-bottom: 16px; }
+.block.editing > section, .block.editing > .viz-row > section { margin-bottom: 14px; }
+.block-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.block-name { font-size: 0.85em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--primary); }
+.block-moves { display: inline-flex; gap: 6px; }
+.block-empty { margin: 0 0 14px; }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 28px; }
+.kpi { background: var(--card); border: 1px solid var(--grid); border-radius: 6px; padding: 14px 16px; }
+.kpi .label { color: var(--muted); font-size: 0.92em; }
+.kpi .value { font-size: 1.75em; font-weight: 600; margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
+.kpi .sub { color: var(--muted); font-size: 0.88em; }
+.meter { height: 6px; border-radius: 3px; background: var(--grid); margin-top: 10px; overflow: hidden; }
+.meter > span { display: block; height: 100%; border-radius: 3px; background: var(--bar); }
+
+section { margin-bottom: 28px; }
+
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; overflow: visible; }
+.chart .axis { fill: var(--muted); font-size: 11px; }
+.chart .gridline { stroke: var(--grid); stroke-width: 1; }
+.chart .bar { fill: var(--bar); }
+.chart .hit { fill: transparent; cursor: default; }
+.chart .hit:hover + .bar, .chart .bar.active { opacity: 0.75; }
+
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--vscode-editorHoverWidget-background);
+  color: var(--vscode-editorHoverWidget-foreground, var(--vscode-foreground));
+  border: 1px solid var(--vscode-editorHoverWidget-border, var(--grid));
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+  transform: translate(-50%, calc(-100% - 8px));
+  display: none;
+}
+.tooltip strong { display: block; font-variant-numeric: tabular-nums; }
+
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font-weight: 600; color: var(--muted); font-size: 0.9em; padding: 6px 8px; border-bottom: 1px solid var(--grid); }
+th.num { text-align: right; }
+td { padding: 6px 8px; border-bottom: 1px solid color-mix(in srgb, var(--grid) 50%, transparent); }
+tbody tr:hover { background: var(--vscode-list-hoverBackground); }
+.share { width: 30%; min-width: 80px; }
+.share > div { height: 8px; border-radius: 0 4px 4px 0; background: var(--bar); }
+tr.me td { background: var(--vscode-list-inactiveSelectionBackground); font-weight: 600; }
+.rank-intro { margin: -4px 0 10px; }
+.member { display: inline-flex; align-items: center; gap: 8px; }
+.avatar {
+  position: relative;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--vscode-badge-background, var(--grid));
+}
+.avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.badge { font-size: 0.85em; padding: 1px 6px; border-radius: 3px; border: 1px solid var(--grid); color: var(--muted); white-space: nowrap; }
+.table-wrap { overflow-x: auto; }
+
+.error { color: var(--vscode-errorForeground); }
+footer { color: var(--muted); font-size: 0.85em; }
+
+/* Activity heatmap: one hue (the primary pink) from faint to full, over the theme background */
+:root {
+  --heat-size: 28px;
+  --heat-0: color-mix(in srgb, var(--vscode-foreground) 9%, transparent);
+  --heat-1: color-mix(in srgb, var(--primary) 28%, transparent);
+  --heat-2: color-mix(in srgb, var(--primary) 52%, transparent);
+  --heat-3: color-mix(in srgb, var(--primary) 76%, transparent);
+  --heat-4: var(--primary);
+}
+.heat-layout { display: flex; flex-wrap: wrap; gap: 24px 28px; align-items: flex-start; }
+/* the tooltip sits outside the scrolling box so it isn't clipped above the first row */
+.heat-wrap { position: relative; max-width: 100%; }
+.heatmap { overflow-x: auto; padding: 3px 4px 3px 0; }
+.heat-grid { display: grid; grid-template-rows: auto repeat(7, var(--heat-size)); gap: 4px; align-items: center; }
+.heat-week { font-size: 10px; color: var(--muted); text-align: left; white-space: nowrap; }
+.heat-day { font-size: 10px; color: var(--muted); padding-right: 6px; }
+.heat-cell { display: inline-block; width: var(--heat-size); height: var(--heat-size); border-radius: 5px; background: var(--heat-0); }
+.heat-cell.l1 { background: var(--heat-1); }
+.heat-cell.l2 { background: var(--heat-2); }
+.heat-cell.l3 { background: var(--heat-3); }
+.heat-cell.l4 { background: var(--heat-4); }
+.heat-cell.out { background: none; }
+.heat-cell.future { background: none; box-shadow: inset 0 0 0 1px var(--heat-0); }
+.heat-cell.today { outline: 2px solid var(--vscode-foreground); outline-offset: 1px; }
+.heat-grid .heat-cell[data-tip]:hover { outline: 2px solid var(--vscode-focusBorder, var(--vscode-foreground)); outline-offset: 1px; }
+.heat-legend { display: flex; align-items: center; gap: 4px; font-size: 11px; margin-top: 10px; }
+.heat-legend .heat-cell { width: 12px; height: 12px; border-radius: 3px; }
+.heat-stats { display: grid; grid-template-columns: minmax(140px, auto); gap: 14px; }
+.heat-stats > div { display: flex; flex-direction: column; gap: 2px; }
+.heat-stats strong { font-size: 1.25em; font-variant-numeric: tabular-nums; }
+.heat-stats .muted { font-size: 0.88em; }
+
+/* Cost chart and activity heatmap side by side; they stack when the panel is narrow */
+.viz-row { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0 48px; }
+.viz-row > section { margin-bottom: 28px; }
+.viz-chart { flex: 1 1 420px; min-width: 0; }
+.viz-heat { flex: 0 1 auto; }
+.viz-row .section-head { min-height: 28px; }

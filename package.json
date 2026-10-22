@@ -1,0 +1,257 @@
+{
+  "name": "usage-panel-for-cursor",
+  "displayName": "Usage Panel for Cursor",
+  "description": "Unofficial: your Cursor spend, usage and team leaderboard in the status bar and a panel, without opening the browser. Not affiliated with Cursor or Anysphere.",
+  "version": "0.1.0",
+  "publisher": "ericosta",
+  "author": {
+    "name": "Eric Costa"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ericosta-dev/cursor-usage.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ericosta-dev/cursor-usage/issues"
+  },
+  "homepage": "https://github.com/ericosta-dev/cursor-usage#readme",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "extensionKind": [
+    "ui"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "cursorUsage.openPanel",
+        "title": "Open usage panel",
+        "category": "Usage Panel"
+      },
+      {
+        "command": "cursorUsage.refresh",
+        "title": "Refresh usage",
+        "category": "Usage Panel"
+      },
+      {
+        "command": "cursorUsage.weeklyDigest",
+        "title": "Show last week's summary",
+        "category": "Usage Panel"
+      }
+    ],
+    "configuration": {
+      "title": "Usage Panel for Cursor",
+      "properties": {
+        "cursorUsage.refreshIntervalMinutes": {
+          "type": "number",
+          "default": 10,
+          "minimum": 5,
+          "description": "How often, in minutes, the status bar checks your usage. Minimum 5."
+        },
+        "cursorUsage.statusBarMetric": {
+          "type": "string",
+          "enum": [
+            "total",
+            "onDemand",
+            "planPercent"
+          ],
+          "enumDescriptions": [
+            "Total cycle spend (plan + on-demand)",
+            "Only on-demand, billed to the team beyond the plan",
+            "Percentage of the plan used"
+          ],
+          "default": "total",
+          "description": "What the status bar shows."
+        },
+        "cursorUsage.statusBarShowToday": {
+          "type": "boolean",
+          "default": true,
+          "description": "Also show today's spend in the status bar."
+        },
+        "cursorUsage.alertAtUsd": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "description": "Warn once per cycle when your cycle spend goes over this amount (USD). 0 turns it off."
+        },
+        "cursorUsage.alertRequestAtUsd": {
+          "type": "number",
+          "default": 5,
+          "minimum": 0,
+          "description": "Warn when a single request costs more than this (USD). Usually an agent stuck in a loop or a huge context. 0 turns it off."
+        },
+        "cursorUsage.alertTeamPoolPercent": {
+          "type": "number",
+          "default": 90,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Warn once per cycle when the team goes over this percentage of its spend limit. 0 turns it off."
+        },
+        "cursorUsage.alertPlanExhausted": {
+          "type": "boolean",
+          "default": true,
+          "description": "Warn once per cycle when your plan is used up and usage becomes on-demand."
+        },
+        "cursorUsage.weeklyDigest": {
+          "type": "boolean",
+          "default": true,
+          "description": "Once a week (from Monday on), show a summary of the previous week: spend, AI commits, agent acceptance and leaderboard position."
+        },
+        "cursorUsage.sections": {
+          "type": "object",
+          "markdownDescription": "Panel sections. A section that is off is not shown and **doesn't fetch its data**, which makes the panel lighter.",
+          "properties": {
+            "chart": {
+              "type": "boolean",
+              "default": true,
+              "description": "Cost per day / per hour"
+            },
+            "heatmap": {
+              "type": "boolean",
+              "default": true,
+              "description": "Cycle activity heatmap"
+            },
+            "youVsTeam": {
+              "type": "boolean",
+              "default": true,
+              "description": "You vs team"
+            },
+            "impact": {
+              "type": "boolean",
+              "default": true,
+              "description": "Code impact"
+            },
+            "quality": {
+              "type": "boolean",
+              "default": true,
+              "description": "Agent quality"
+            },
+            "leaderboard": {
+              "type": "boolean",
+              "default": true,
+              "description": "Team leaderboard"
+            },
+            "models": {
+              "type": "boolean",
+              "default": true,
+              "description": "By model"
+            },
+            "languages": {
+              "type": "boolean",
+              "default": true,
+              "description": "Languages"
+            },
+            "conversations": {
+              "type": "boolean",
+              "default": true,
+              "description": "Most expensive conversations"
+            },
+            "cloud": {
+              "type": "boolean",
+              "default": true,
+              "description": "Cloud agents"
+            },
+            "recent": {
+              "type": "boolean",
+              "default": true,
+              "description": "Recent requests"
+            }
+          },
+          "additionalProperties": false,
+          "default": {
+            "chart": true,
+            "heatmap": true,
+            "youVsTeam": true,
+            "impact": true,
+            "quality": true,
+            "leaderboard": true,
+            "models": true,
+            "languages": true,
+            "conversations": true,
+            "cloud": true,
+            "recent": true
+          }
+        },
+        "cursorUsage.sectionOrder": {
+          "type": "array",
+          "uniqueItems": true,
+          "markdownDescription": "Order of the panel blocks. Easier to change with **Customize layout** in the panel. Missing blocks are added at the end.",
+          "items": {
+            "type": "string",
+            "enum": [
+              "activity",
+              "youVsTeam",
+              "impact",
+              "quality",
+              "leaderboard",
+              "models",
+              "languages",
+              "conversations",
+              "cloud",
+              "recent"
+            ],
+            "enumDescriptions": [
+              "Cost per day + cycle activity heatmap",
+              "You vs team",
+              "Code impact",
+              "Agent quality",
+              "Team leaderboard",
+              "By model",
+              "Languages",
+              "Most expensive conversations",
+              "Cloud agents",
+              "Recent requests"
+            ]
+          },
+          "default": [
+            "activity",
+            "youVsTeam",
+            "impact",
+            "quality",
+            "leaderboard",
+            "models",
+            "languages",
+            "conversations",
+            "cloud",
+            "recent"
+          ]
+        },
+        "cursorUsage.accentColor": {
+          "type": "string",
+          "default": "",
+          "format": "color-hex",
+          "pattern": "^(#[0-9a-fA-F]{6})?$",
+          "patternErrorMessage": "Use a 6-digit hex color such as #F71963, or leave it empty to follow your theme.",
+          "markdownDescription": "Accent color for the panel's charts, meters, heatmap and buttons, as a 6-digit hex color (for example `#F71963`). Leave empty to follow your theme. Button text switches between black and white automatically to stay readable."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -watch -p .",
+    "package": "npm run compile && vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.0",
+    "@types/vscode": "1.90.0",
+    "@vscode/vsce": "3.2.1",
+    "typescript": "5.6.3"
+  },
+  "keywords": [
+    "cursor",
+    "usage",
+    "cost",
+    "spend",
+    "analytics",
+    "status bar"
+  ]
+}
