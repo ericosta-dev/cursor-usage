@@ -1,7 +1,7 @@
 {
   "name": "usage-panel-for-cursor",
   "displayName": "Usage Panel for Cursor",
-  "description": "Unofficial: your Cursor spend, usage and team leaderboard in the status bar and a panel, without opening the browser. Not affiliated with Cursor or Anysphere.",
+  "description": "Unofficial: your Cursor spend and usage in the status bar and a panel, without opening the browser. Not affiliated with Cursor or Anysphere.",
   "version": "0.1.0",
   "publisher": "ericosta",
   "author": {
@@ -103,7 +103,7 @@
         "cursorUsage.weeklyDigest": {
           "type": "boolean",
           "default": true,
-          "description": "Once a week (from Monday on), show a summary of the previous week: spend, AI commits, agent acceptance and leaderboard position."
+          "description": "Once a week (from Monday on), show a summary of the previous week: spend, AI commits and agent acceptance."
         },
         "cursorUsage.sections": {
           "type": "object",
@@ -133,11 +133,6 @@
               "type": "boolean",
               "default": true,
               "description": "Agent quality"
-            },
-            "leaderboard": {
-              "type": "boolean",
-              "default": true,
-              "description": "Team leaderboard"
             },
             "models": {
               "type": "boolean",
@@ -172,7 +167,6 @@
             "youVsTeam": true,
             "impact": true,
             "quality": true,
-            "leaderboard": true,
             "models": true,
             "languages": true,
             "conversations": true,
@@ -191,7 +185,6 @@
               "youVsTeam",
               "impact",
               "quality",
-              "leaderboard",
               "models",
               "languages",
               "conversations",
@@ -203,7 +196,6 @@
               "You vs team",
               "Code impact",
               "Agent quality",
-              "Team leaderboard",
               "By model",
               "Languages",
               "Most expensive conversations",
@@ -216,7 +208,6 @@
             "youVsTeam",
             "impact",
             "quality",
-            "leaderboard",
             "models",
             "languages",
             "conversations",

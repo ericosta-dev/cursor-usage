@@ -12,7 +12,7 @@ const NOTICE_KEY = 'cursorUsage.noticeShown';
 const DAY = 86_400_000;
 
 // Panel sections, all on by default (see the cursorUsage.sections setting).
-const SECTION_KEYS = ['chart', 'heatmap', 'youVsTeam', 'impact', 'quality', 'leaderboard', 'models', 'languages', 'conversations', 'cloud', 'recent'];
+const SECTION_KEYS = ['chart', 'heatmap', 'youVsTeam', 'impact', 'quality', 'models', 'languages', 'conversations', 'cloud', 'recent'];
 
 // What the status bar needs; shared between Cursor windows through globalState.
 interface StatusSnapshot {
@@ -245,12 +245,11 @@ export function activate(context: vscode.ExtensionContext) {
     const now = Date.now();
     const start = { cycle: core.summary.cycleStart, week: startOfWeek(now), today: startOfDay(now) }[period];
     const show = core.sections;
-    const [analytics, leaderboard, repos] = await Promise.all([
+    const [analytics, repos] = await Promise.all([
       show.youVsTeam ? optional(api.userAnalytics(start, now)) : undefined,
-      show.leaderboard ? optional(api.leaderboard(start, now)) : undefined,
       show.impact ? optional(loadRepos(api, start, now)) : undefined,
     ]);
-    return { analytics, leaderboard, repos };
+    return { analytics, repos };
   }
 
   // Once a week (first refresh from Monday on), a one-line wrap-up of the previous week.
@@ -264,11 +263,10 @@ export function activate(context: vscode.ExtensionContext) {
       const lastWeek = startOfWeek(now, 1);
       const weekBefore = startOfWeek(now, 2);
       const lastDay = thisWeek - 1; // Sunday, for the date-based analytics endpoints
-      const [cur, prev, totals, board] = await Promise.all([
+      const [cur, prev, totals] = await Promise.all([
         api.events(lastWeek, thisWeek),
         api.events(weekBefore, lastWeek),
         optional(activityTotals(api, lastWeek, lastDay)),
-        optional(api.leaderboard(lastWeek, lastDay)),
       ]);
       const cents = cur.events.reduce((sum, e) => sum + e.cents, 0);
       const prevCents = prev.events.reduce((sum, e) => sum + e.cents, 0);
@@ -282,8 +280,6 @@ export function activate(context: vscode.ExtensionContext) {
         parts.push(`${totals.commits} ${totals.commits === 1 ? 'commit' : 'commits'}${totals.commits ? ` (${aiPct}% of lines by AI)` : ''}`);
         if (totals.diffsSuggested) parts.push(`${Math.round((totals.diffsAccepted / totals.diffsSuggested) * 100)}% of agent diffs accepted`);
       }
-      const rank = board?.agent.find((r) => r.isMe)?.rank;
-      if (rank) parts.push(`${ordinal(rank)} of ${board!.activeMembers} on the leaderboard`);
       openPanelAction(`Cursor · week of ${shortDate(lastWeek)} – ${shortDate(lastDay)}: ${parts.join(' · ')}.`, false);
     } catch (err) {
       showError(err);

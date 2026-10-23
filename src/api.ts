@@ -83,25 +83,6 @@ export interface UserAnalytics {
   agentRequests: number;
 }
 
-// One row of the dashboard's Analytics "Usage Leaderboard" (visible to every team member).
-export interface LeaderboardEntry {
-  rank: number;
-  name: string;
-  pictureUrl?: string;
-  favoriteModel?: string;
-  isMe: boolean;
-  accepts: number; // agent: diffs accepted · tab: suggestions accepted
-  linesAccepted: number;
-  linesSuggested: number;
-  acceptRatio?: number; // tab only: accepted ÷ shown
-}
-
-export interface Leaderboard {
-  agent: LeaderboardEntry[];
-  tab: LeaderboardEntry[];
-  activeMembers: number;
-}
-
 export class CursorApi {
   private teamId?: number;
   private teamUserId?: number;
@@ -174,7 +155,7 @@ export class CursorApi {
     };
   }
 
-  // Dashboard Analytics (v2). For members, everything but the leaderboard covers only their own activity.
+  // Dashboard Analytics (v2), always filtered to the current user.
   // The user filter matters for admins, who otherwise get team-wide numbers.
   async analytics<T>(endpoint: string, start: number, end: number): Promise<T> {
     const teamId = await this.getTeamId();
@@ -182,50 +163,6 @@ export class CursorApi {
     const query = new URLSearchParams({ startDate: isoDay(start), endDate: isoDay(end), teamId: String(teamId) });
     if (this.teamUserEmail) query.set('user', this.teamUserEmail);
     return this.request<T>('GET', `/api/v2/analytics/team/${endpoint}?${query}`);
-  }
-
-  async leaderboard(start: number, end: number): Promise<Leaderboard> {
-    const teamId = await this.getTeamId();
-    const me = await this.getTeamUserId();
-    const day = isoDay;
-    const query = new URLSearchParams({
-      startDate: day(start), endDate: day(end), pageSize: '100', teamId: String(teamId), leaderboardSortBy: 'composer_lines',
-    });
-    type Row = {
-      rank?: number; display_name?: string; user_id?: number; profile_picture_url?: string; favorite_model?: string;
-      total_diff_accepts?: number; total_composer_lines_accepted?: number; total_composer_lines_suggested?: number;
-      total_tab_accepts?: number; total_tab_lines_accepted?: number; total_tab_lines_suggested?: number; tab_accept_ratio?: number;
-    };
-    type Board = { data?: Row[]; total_users?: number };
-    const r = await this.request<{ composer_leaderboard?: Board; tab_leaderboard?: Board }>('GET', `/api/v2/analytics/team/leaderboard?${query}`);
-    // Emails come back too; they are dropped here and never reach the panel.
-    const base = (m: Row) => ({
-      rank: Number(m.rank ?? 0),
-      name: m.display_name || '—',
-      pictureUrl: m.profile_picture_url?.startsWith('https://') ? m.profile_picture_url : undefined,
-      favoriteModel: m.favorite_model && m.favorite_model !== 'Unknown' ? m.favorite_model : undefined,
-      isMe: m.user_id === me,
-    });
-    const byRank = (a: LeaderboardEntry, b: LeaderboardEntry) => a.rank - b.rank;
-    return {
-      agent: (r.composer_leaderboard?.data ?? []).map((m) => ({
-        ...base(m),
-        accepts: Number(m.total_diff_accepts ?? 0),
-        linesAccepted: Number(m.total_composer_lines_accepted ?? 0),
-        linesSuggested: Number(m.total_composer_lines_suggested ?? 0),
-      })).sort(byRank),
-      tab: (r.tab_leaderboard?.data ?? []).map((m) => ({
-        ...base(m),
-        accepts: Number(m.total_tab_accepts ?? 0),
-        linesAccepted: Number(m.total_tab_lines_accepted ?? 0),
-        linesSuggested: Number(m.total_tab_lines_suggested ?? 0),
-        acceptRatio: m.tab_accept_ratio,
-      }))
-        // The API ranks both lists by the requested sort (agent lines), so rank Tab by its own metric.
-        .sort((a, b) => b.accepts - a.accepts || b.linesAccepted - a.linesAccepted)
-        .map((m, i) => ({ ...m, rank: i + 1 })),
-      activeMembers: Number(r.composer_leaderboard?.total_users ?? r.tab_leaderboard?.total_users ?? 0),
-    };
   }
 
   private async getTeamUserId(): Promise<number | undefined> {

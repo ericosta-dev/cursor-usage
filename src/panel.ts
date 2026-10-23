@@ -2,7 +2,7 @@ import { randomBytes } from 'crypto';
 import { statSync } from 'fs';
 import * as vscode from 'vscode';
 import { Activity, RepoImpact } from './activity';
-import { Leaderboard, UsageEvent, UsageSummary, UserAnalytics } from './api';
+import { UsageEvent, UsageSummary, UserAnalytics } from './api';
 
 export type PeriodKey = 'cycle' | 'week' | 'today';
 const PERIOD_KEYS: PeriodKey[] = ['cycle', 'week', 'today'];
@@ -23,7 +23,6 @@ export interface CoreData {
 // Data the API only serves per period; loaded the first time that period is shown.
 export interface PeriodData {
   analytics?: UserAnalytics;
-  leaderboard?: Leaderboard;
   repos?: RepoImpact[];
 }
 
@@ -179,7 +178,7 @@ export class UsagePanel {
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https:; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="${css}">${accent ? `
 <style>${accent}</style>` : ''}

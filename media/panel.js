@@ -38,7 +38,6 @@
     youVsTeam: 'You vs team',
     impact: 'Code impact',
     quality: 'Agent quality',
-    leaderboard: 'Team leaderboard',
     models: 'By model',
     languages: 'Languages',
     conversations: 'Most expensive conversations',
@@ -57,16 +56,14 @@
   /** @type {any} */
   let view;
   let period = vscode.getState()?.period ?? 'cycle';
-  let board = vscode.getState()?.board ?? 'agent';
-  let boardAll = false;
   let recentPage = 0;
   let heatMetric = vscode.getState()?.heatMetric ?? 'requests';
   let order = DEFAULT_ORDER;
   let editing = false;
-  /** @type {Record<string, any>} per-period data (analytics, leaderboard, repos), loaded on demand */
+  /** @type {Record<string, any>} per-period data (analytics, repos), loaded on demand */
   let periodData = {};
   let restoreScroll = vscode.getState()?.scrollY ?? 0;
-  const saveState = () => vscode.setState({ period, board, heatMetric, scrollY: window.scrollY });
+  const saveState = () => vscode.setState({ period, heatMetric, scrollY: window.scrollY });
   const pd = () => periodData[period];
   const show = (key) => data.sections?.[key] !== false;
 
@@ -101,11 +98,6 @@
     requestAnimationFrame(() => { scrollQueued = false; saveState(); });
   });
   window.addEventListener('resize', () => view && drawChart());
-  // Inline onerror is blocked by the CSP, so catch failed avatars here (error events don't bubble).
-  document.addEventListener('error', (e) => {
-    const t = /** @type {HTMLElement} */ (e.target);
-    if (t.tagName === 'IMG' && t.parentElement?.classList.contains('avatar')) t.remove();
-  }, true);
   app.addEventListener('click', (e) => {
     const t = /** @type {HTMLElement} */ (e.target);
     if (t.closest('#refresh')) vscode.postMessage({ type: 'refresh', period });
@@ -128,16 +120,6 @@
       recentPage = Number(page.dataset.recentPage);
       render();
       document.getElementById('recent')?.scrollIntoView({ block: 'start' });
-    }
-    const b = /** @type {HTMLElement | null} */ (t.closest('[data-board]'));
-    if (b && data) {
-      board = b.dataset.board;
-      saveState();
-      render();
-    }
-    if (t.closest('[data-board-all]') && data) {
-      boardAll = !boardAll;
-      render();
     }
     // Layout editing
     if (t.closest('#customize') && data) { editing = !editing; render(); }
@@ -491,53 +473,6 @@
       </section>`;
   }
 
-  const LEADERBOARD_TOP = 10;
-
-  // The dashboard's Analytics "Usage Leaderboard": every member can see it.
-  function leaderboardSection() {
-    if (!show('leaderboard')) return '';
-    if (!pd()) return loadingSection('Team leaderboard');
-    const lb = pd().leaderboard;
-    if (!lb) return '';
-    const rows = board === 'tab' ? lb.tab : lb.agent;
-    const me = rows.find((r) => r.isMe);
-    const visible = boardAll ? rows : rows.slice(0, LEADERBOARD_TOP);
-    if (!boardAll && me && !visible.includes(me)) visible.push(me); // always show your own row
-    const isTab = board === 'tab';
-    const metric = (r) => (isTab ? r.accepts : r.linesAccepted); // the bar follows the sort order
-    const max = Math.max(1, ...rows.map(metric));
-    const intro = me
-      ? `You're <strong>${ordinal(me.rank)} of ${int.format(lb.activeMembers)}</strong> members active in the period`
-      : `${int.format(lb.activeMembers)} members active in the period`;
-    const head = isTab
-      ? '<th class="num">Suggestions accepted</th><th class="num">Lines accepted</th><th class="num">Accept rate</th>'
-      : '<th class="num">Diffs accepted</th><th class="num">Lines accepted</th>';
-    const cells = (r) => isTab
-      ? `<td class="num">${int.format(r.accepts)}</td><td class="num">${int.format(r.linesAccepted)}</td><td class="num">${r.acceptRatio !== undefined ? Math.round(r.acceptRatio * 100) + '%' : '—'}</td>`
-      : `<td class="num">${int.format(r.accepts)}</td><td class="num">${int.format(r.linesAccepted)}</td>`;
-    return `
-      <section>
-        <div class="section-head">
-          <h2>Team leaderboard</h2>
-          <div class="segmented small" role="group" aria-label="Leaderboard">
-            <button data-board="agent" aria-pressed="${!isTab}">Agent</button><button data-board="tab" aria-pressed="${isTab}">Tab</button>
-          </div>
-        </div>
-        <p class="muted rank-intro">${intro} · sorted by ${isTab ? 'Tab suggestions accepted' : 'agent lines accepted'}, like the dashboard</p>
-        ${rows.length ? `<div class="table-wrap"><table>
-          <thead><tr><th class="num">#</th><th>Member</th><th>Favorite model</th>${head}<th class="share" aria-hidden="true"></th></tr></thead>
-          <tbody>${visible.map((r) => `
-            <tr${r.isMe ? ' class="me"' : ''}><td class="num">${r.rank}</td>
-            <td><span class="member">${avatar(r)}<span>${esc(r.name)}</span>${r.isMe ? '<span class="badge">you</span>' : ''}</span></td>
-            <td class="nowrap">${r.favoriteModel ? esc(r.favoriteModel) : '<span class="muted">—</span>'}</td>
-            ${cells(r)}<td class="share"><div style="width:${(metric(r) / max) * 100}%"></div></td></tr>`).join('')}
-          </tbody>
-        </table></div>
-        ${rows.length > LEADERBOARD_TOP ? `<button class="link" data-board-all>${boardAll ? `Show top ${LEADERBOARD_TOP} only` : `Show all (${rows.length})`}</button>` : ''}`
-        : '<p class="muted">No activity in the period.</p>'}
-      </section>`;
-  }
-
   function modelsSection(empty) {
     if (!show('models')) return '';
     const max = Math.max(1, ...view.models.map((m) => m.cents));
@@ -589,7 +524,6 @@
       case 'youVsTeam': return teamCompareSection();
       case 'impact': return impactSection();
       case 'quality': return qualitySection();
-      case 'leaderboard': return leaderboardSection();
       case 'models': return modelsSection(empty);
       case 'languages': return languagesSection();
       case 'conversations': return conversationsSection();
@@ -780,17 +714,6 @@
         </table></div>
         ${pager}
       </section>`;
-  }
-
-  function initials(name) {
-    const letters = String(name).trim().split(/\s+/).map((p) => p.match(/\p{L}/u)?.[0]).filter(Boolean);
-    return ((letters[0] ?? '') + (letters.length > 1 ? letters[letters.length - 1] : '')).toUpperCase() || '?';
-  }
-
-  // Initials sit underneath; the photo covers them when it loads and is removed if it fails.
-  function avatar(m) {
-    const img = m.pictureUrl ? `<img src="${esc(m.pictureUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : '';
-    return `<span class="avatar" aria-hidden="true">${esc(initials(m.name))}${img}</span>`;
   }
 
   // Round axis: about four ticks at 1/2/2.5/5 × 10^n.
