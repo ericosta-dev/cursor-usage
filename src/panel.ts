@@ -31,7 +31,7 @@ export interface PanelHost {
   period(period: PeriodKey, core: CoreData): Promise<PeriodData>;
   maxAgeMs(): number; // cached data older than this is fetched again
   saveOrder(order: string[]): Thenable<void>;
-  openSettings(): Thenable<unknown>;
+  setSection(key: string, visible: boolean): Thenable<void>;
   accentColor(): string | undefined; // validated #rrggbb, or undefined to follow the theme
 }
 
@@ -68,9 +68,17 @@ export class UsagePanel {
     UsagePanel.current = new UsagePanel(extensionUri, host, onError);
   }
 
-  // Settings changed: drop the cache and reload if the panel is open.
-  static reloadIfOpen() {
-    void UsagePanel.current?.send(undefined, true);
+  // Sections changed. Hiding only re-renders; turning on a section whose data was never fetched reloads.
+  static applySections(sections: Record<string, boolean>) {
+    const panel = UsagePanel.current;
+    if (!panel?.core) return;
+    const missing = Object.keys(sections).some((k) => sections[k] && !panel.core!.fetched[k]);
+    if (missing) {
+      void panel.send(undefined, true);
+      return;
+    }
+    panel.core.data.sections = sections;
+    panel.post({ type: 'sections', sections });
   }
 
   // The accent color changed: rebuild the page; the webview then replays the cached data.
@@ -88,7 +96,7 @@ export class UsagePanel {
   }
 
   private readonly panel: vscode.WebviewPanel;
-  private core?: { data: CoreData; at: number };
+  private core?: { data: CoreData; at: number; fetched: Record<string, boolean> }; // fetched: sections loaded with it
   private periods = new Map<PeriodKey, PeriodData>();
   private loadingCore?: Promise<void>;
   private lastPeriod: PeriodKey = 'cycle';
@@ -116,7 +124,9 @@ export class UsagePanel {
       if (msg?.type === 'saveOrder' && Array.isArray(msg.order)) {
         void Promise.resolve(this.host.saveOrder(msg.order.filter((id: unknown) => typeof id === 'string'))).catch(this.onError);
       }
-      if (msg?.type === 'openSettings') void this.host.openSettings();
+      if (msg?.type === 'setSection' && typeof msg.key === 'string' && typeof msg.value === 'boolean') {
+        void Promise.resolve(this.host.setSection(msg.key, msg.value)).catch(this.onError);
+      }
     });
   }
 
@@ -132,7 +142,7 @@ export class UsagePanel {
         // A refresh and a webview reload can overlap; share one load.
         this.loadingCore ??= this.host.core()
           .then((data) => {
-            this.core = { data, at: Date.now() };
+            this.core = { data, at: Date.now(), fetched: { ...data.sections } };
             this.periods.clear();
           })
           .finally(() => (this.loadingCore = undefined));

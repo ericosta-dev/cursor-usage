@@ -45,6 +45,9 @@
     recent: 'Recent requests',
   };
   const DEFAULT_ORDER = Object.keys(BLOCKS);
+  // Settings keys (cursorUsage.sections) behind each block; the activity row holds two.
+  const BLOCK_SECTIONS = { activity: [['chart', 'Chart'], ['heatmap', 'Heatmap']] };
+  const blockSections = (id) => BLOCK_SECTIONS[id] ?? [[id, 'Show']];
   // Unknown ids are dropped and missing ones appended, so an old or hand-edited setting still works.
   const normalizeOrder = (order) => {
     const known = (Array.isArray(order) ? order : []).filter((id, i, a) => id in BLOCKS && a.indexOf(id) === i);
@@ -76,6 +79,7 @@
       if (data && msg.period === period) render();
     }
     if (msg.type === 'order' && data) { order = normalizeOrder(msg.order); render(); }
+    if (msg.type === 'sections' && data) { data.sections = msg.sections; render(); }
     if (msg.type === 'error') renderError(msg.message);
   });
   // Heatmap tooltip: one shared element, positioned over the hovered cell.
@@ -124,7 +128,6 @@
     // Layout editing
     if (t.closest('#customize') && data) { editing = !editing; render(); }
     if (t.closest('#reset-order') && data) saveOrder(DEFAULT_ORDER);
-    if (t.closest('#open-settings')) vscode.postMessage({ type: 'openSettings' });
     const move = /** @type {HTMLElement | null} */ (t.closest('[data-move]'));
     if (move && data) {
       const id = move.closest('[data-block]')?.getAttribute('data-block');
@@ -136,6 +139,15 @@
         requestAnimationFrame(() => document.querySelector(`[data-block="${id}"]`)?.scrollIntoView({ block: 'nearest' }));
       }
     }
+  });
+  // Show/hide toggles in layout mode: applied at once, saved to cursorUsage.sections by the extension.
+  app.addEventListener('change', (e) => {
+    const input = /** @type {HTMLInputElement} */ (e.target);
+    const key = input.dataset?.section;
+    if (!key || !data) return;
+    data.sections = { ...data.sections, [key]: input.checked };
+    render();
+    vscode.postMessage({ type: 'setSection', key, value: input.checked });
   });
   vscode.postMessage({ type: 'ready', period });
 
@@ -538,11 +550,16 @@
     return order.map((id, i) => {
       const html = blockHtml(id, empty);
       if (!editing) return html;
-      const body = html || '<p class="muted block-empty">Hidden in settings, or no data for this period.</p>';
+      const toggles = blockSections(id);
+      const allHidden = toggles.every(([key]) => !show(key));
+      const body = html || `<p class="muted block-empty">${allHidden ? 'Hidden.' : 'No data for this period.'}</p>`;
       return `
-      <div class="block editing" data-block="${id}">
+      <div class="block editing${allHidden ? ' is-hidden' : ''}" data-block="${id}">
         <div class="block-bar">
           <span class="block-name">${esc(BLOCKS[id])}</span>
+          <span class="block-toggles">${toggles.map(([key, label]) => `
+            <label class="toggle"><input type="checkbox" data-section="${key}" ${show(key) ? 'checked' : ''}> ${esc(label)}</label>`).join('')}
+          </span>
           <span class="block-moves">
             <button class="icon" data-move="up" title="Move up" aria-label="Move ${esc(BLOCKS[id])} up" ${i === 0 ? 'disabled' : ''}>↑</button>
             <button class="icon" data-move="down" title="Move down" aria-label="Move ${esc(BLOCKS[id])} down" ${i === order.length - 1 ? 'disabled' : ''}>↓</button>
@@ -574,9 +591,8 @@
       </header>
       ${editing ? `
       <div class="layout-bar">
-        <span>Use ↑ ↓ to reorder the blocks. The order is saved in your settings (<code>cursorUsage.sectionOrder</code>).</span>
+        <span>Reorder blocks with ↑ ↓ and show or hide them with the checkboxes. Saved in your settings (<code>cursorUsage.sectionOrder</code>, <code>cursorUsage.sections</code>).</span>
         <span class="layout-actions">
-          <button class="link" id="open-settings">Show or hide sections…</button>
           <button class="link" id="reset-order">Reset order</button>
         </span>
       </div>` : ''}

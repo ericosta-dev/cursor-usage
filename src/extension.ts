@@ -298,7 +298,10 @@ export function activate(context: vscode.ExtensionContext) {
     period: loadPeriod,
     maxAgeMs: intervalMs,
     saveOrder: (order: string[]) => config().update('sectionOrder', order, vscode.ConfigurationTarget.Global),
-    openSettings: () => vscode.commands.executeCommand('workbench.action.openSettings', 'cursorUsage.sections'),
+    setSection: (key: string, visible: boolean) => {
+      if (!SECTION_KEYS.includes(key)) return Promise.resolve();
+      return config().update('sections', { ...sections(), [key]: visible }, vscode.ConfigurationTarget.Global);
+    },
     accentColor: () => {
       const color = config().get<string>('accentColor', '').trim();
       return /^#[0-9a-f]{6}$/i.test(color) ? color : undefined;
@@ -315,7 +318,10 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.onDidChangeWindowState((state) => state.focused && void refresh()),
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (!e.affectsConfiguration('cursorUsage')) return;
-      if (e.affectsConfiguration('cursorUsage.sections')) UsagePanel.reloadIfOpen();
+      if (e.affectsConfiguration('cursorUsage.sections')) {
+        UsagePanel.applySections(sections());
+        return; // only the panel changed
+      }
       if (e.affectsConfiguration('cursorUsage.accentColor')) {
         UsagePanel.restyle();
         return; // only the panel's look changed

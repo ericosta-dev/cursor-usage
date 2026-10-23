@@ -77,6 +77,11 @@ button.icon:disabled { opacity: 0.35; }
 .block-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 .block-name { font-size: 0.85em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--primary); }
 .block-moves { display: inline-flex; gap: 6px; }
+.block-name { flex: 1; }
+.block-toggles { display: inline-flex; gap: 14px; }
+.toggle { display: inline-flex; align-items: center; gap: 5px; font-size: 0.9em; cursor: pointer; user-select: none; }
+.toggle input { accent-color: var(--primary); margin: 0; cursor: pointer; }
+.block.editing.is-hidden { opacity: 0.6; }
 .block-empty { margin: 0 0 14px; }
 
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 28px; }
