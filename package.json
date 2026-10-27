@@ -2,7 +2,7 @@
   "name": "usage-panel-for-cursor",
   "displayName": "Usage Panel for Cursor",
   "description": "Unofficial: your Cursor spend and usage in the status bar and a panel, without opening the browser. Not affiliated with Cursor or Anysphere.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "ericosta",
   "author": {
     "name": "Eric Costa"

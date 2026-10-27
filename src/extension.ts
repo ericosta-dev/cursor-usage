@@ -66,7 +66,7 @@ export function activate(context: vscode.ExtensionContext) {
   let session: Session | undefined;
   const getSession = async (forceReload: boolean) => {
     if (forceReload || !session || session.expiresAt - Date.now() < 60_000) {
-      session = await loadSession(dbPath);
+      session = await loadSession(dbPath, context.secrets);
     }
     return session;
   };

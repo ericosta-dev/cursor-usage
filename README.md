@@ -76,6 +76,7 @@ Cycle-level alerts show up once per cycle, even with several windows open. When 
 ## How it works
 
 - Reads the sign-in token from Cursor's local database (`state.vscdb`) with the runtime's built-in SQLite. It reads only that record, without loading the whole file into memory, once per session, and reads it again only when the token expires or is rejected.
+- Recent Cursor versions encrypt that token with the OS secrets manager (Keychain on macOS, DPAPI on Windows, Secret Service on Linux). The extension decrypts it locally the same way Cursor does. On macOS, the first time, the system asks to let `security` use "Cursor Safe Storage": click **Allow**. The key is then kept in the extension's own secret storage, so the prompt doesn't come back.
 - Conversation titles come from the same local database, looked up by key. The extension never reads the conversations themselves.
 - Calls the same endpoints that `cursor.com/dashboard` uses. The token is only ever sent to `cursor.com`.
 - The status bar makes **two** calls per interval (cycle summary and today's requests), and all open windows share the result. While Cursor is in the background it doesn't call anything; when it gets focus again it only refreshes if the data is stale.
