@@ -32,11 +32,11 @@ cursor --install-extension ericosta.usage-panel-for-cursor
 
 **From a `.vsix` file:** Cursor's extension gallery mirrors Open VSX with a delay, so a new release can show up as *"not found"* for a while. In that case:
 
-1. Download the `.vsix` from Open VSX: [ericosta.usage-panel-for-cursor-0.1.0.vsix](https://open-vsx.org/api/ericosta/usage-panel-for-cursor/0.1.0/file/ericosta.usage-panel-for-cursor-0.1.0.vsix) (or from the extension's page, under *Download*).
+1. Download the `.vsix` from Open VSX: [ericosta.usage-panel-for-cursor-0.1.1.vsix](https://open-vsx.org/api/ericosta/usage-panel-for-cursor/0.1.1/file/ericosta.usage-panel-for-cursor-0.1.1.vsix) (or from the extension's page, under *Download*).
 2. In Cursor: Extensions → `···` menu → **Install from VSIX…** → pick the file. Or, from the folder where you saved it:
 
    ```bash
-   cursor --install-extension ericosta.usage-panel-for-cursor-0.1.0.vsix
+   cursor --install-extension ericosta.usage-panel-for-cursor-0.1.1.vsix
    ```
 
 3. `Cmd/Ctrl+Shift+P` → **Developer: Reload Window**.
@@ -131,7 +131,7 @@ Cursor installs extensions from [Open VSX](https://open-vsx.org). With an [Open 
 ```bash
 npx ovsx create-namespace ericosta -p <token>   # once
 npm run package
-npx ovsx publish usage-panel-for-cursor-0.1.0.vsix -p <token>
+npx ovsx publish usage-panel-for-cursor-0.1.1.vsix -p <token>
 ```
 
 Bump `version` in `package.json` before each new release.
